@@ -4,11 +4,11 @@
 
 **For:** Solo AU self-directed investor (IBKR + Coinspot, FIRE-minded). Multi-user optional later.
 
-**Solves:** Wealth is split across IBKR, crypto, banks, super, and spreadsheets that never stay current. No single view of net worth, no goal tracking, no ongoing allocation guidance.
+**Solves:** Wealth is split across different platforms. Attempts to track it on spreadsheets is a troublesome manual job, so it doesn't consistantly stays up to date. Its' hard to have a single view of net worth, goal tracking, and ongoing allocation guidance.
 
 ## Goals
 
-- Replace the manual spreadsheet with a live net-worth dashboard (IBKR + Coinspot + manual assets) — success = daily use instead of spreadsheet
+- Replace the manual spreadsheet with a live net-worth dashboard (IBKR + Coinspot + manual assets + property) — success = daily use instead of spreadsheet
 - Provide FIRE goal progress visibility — success = can answer "am I on track?" in under 30 seconds
 - Surface allocation guidance and weekly briefings tied to the individual portfolio — success = weekly review workflow fully inside the app
 
