@@ -50,10 +50,10 @@ Phase 4 ── T8: Wire App.jsx (serial)
 - **Reuses:** `fetchPortfolio` from T1
 - **Requirement:** FEAT-01, FEAT-13
 - **Done when:**
-  - [ ] Renders two-column layout (left: NetWorthCard + HoldingsTable; right: AllocationChart + MarketSummaryCard)
-  - [ ] `portfolio`, `loading`, `syncing`, `error` state initialised correctly
-  - [ ] Calls `fetchPortfolio()` on mount; sets `loading = true` before, `loading = false` after
-  - [ ] Passes data props down to child placeholders (can be `null` while children not yet created)
+  - [x] Renders two-column layout (left: NetWorthCard + HoldingsTable; right: AllocationChart + MarketSummaryCard)
+  - [x] `portfolio`, `loading`, `syncing`, `error` state initialised correctly
+  - [x] Calls `fetchPortfolio()` on mount; sets `loading = true` before, `loading = false` after
+  - [x] Passes data props down to child placeholders (can be `null` while children not yet created)
 - **Tests:** none
 - **Gate:** quick
 
