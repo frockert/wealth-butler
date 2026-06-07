@@ -67,9 +67,9 @@ Phase 4 ── T8: Wire App.jsx (serial)
 - **Reuses:** `Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' })`; Tailwind `animate-pulse`
 - **Requirement:** FEAT-01, FEAT-02
 - **Done when:**
-  - [ ] Renders AUD total when `netWorth` is a number
-  - [ ] Renders `animate-pulse` skeleton div when `loading` is `true`
-  - [ ] Displays "A$0.00" (not blank) when `netWorth` is `0`
+  - [x] Renders AUD total when `netWorth` is a number
+  - [x] Renders `animate-pulse` skeleton div when `loading` is `true`
+  - [x] Displays "A$0.00" (not blank) when `netWorth` is `0`
 - **Tests:** none
 - **Gate:** quick
 
@@ -83,12 +83,12 @@ Phase 4 ── T8: Wire App.jsx (serial)
 - **Reuses:** Tailwind table classes
 - **Requirement:** FEAT-03, FEAT-04, FEAT-05
 - **Done when:**
-  - [ ] Renders columns: Ticker/Coin | Exchange | Qty | Price (AUD) | Value (AUD) | Allocation %
-  - [ ] Rows sorted by `valueAUD` descending on render
-  - [ ] Renders 5 skeleton rows when `loading` is `true`
-  - [ ] Renders "No holdings — sync to load" empty state when `holdings` is empty and not loading
-  - [ ] Price and value columns formatted as AUD currency
-  - [ ] Allocation % formatted to 1 decimal place
+  - [x] Renders columns: Ticker/Coin | Exchange | Qty | Price (AUD) | Value (AUD) | Allocation %
+  - [x] Rows sorted by `valueAUD` descending on render
+  - [x] Renders 5 skeleton rows when `loading` is `true`
+  - [x] Renders "No holdings — sync to load" empty state when `holdings` is empty and not loading
+  - [x] Price and value columns formatted as AUD currency
+  - [x] Allocation % formatted to 1 decimal place
 - **Tests:** none
 - **Gate:** quick
 
@@ -102,11 +102,11 @@ Phase 4 ── T8: Wire App.jsx (serial)
 - **Reuses:** `recharts` — `PieChart`, `Pie`, `Cell`, `Tooltip`, `Legend`
 - **Requirement:** FEAT-09, FEAT-10
 - **Done when:**
-  - [ ] Groups `holdings` by `sector`; uses "Other" as fallback when `sector` is absent
-  - [ ] One slice per sector; slice size proportional to sum of `valueAUD` in that sector
-  - [ ] Tooltip shows sector name + AUD value on hover
-  - [ ] Renders skeleton placeholder when `loading` is `true`
-  - [ ] Renders "No data" placeholder when `holdings` is empty and not loading
+  - [x] Groups `holdings` by `sector`; uses "Other" as fallback when `sector` is absent
+  - [x] One slice per sector; slice size proportional to sum of `valueAUD` in that sector
+  - [x] Tooltip shows sector name + AUD value on hover
+  - [x] Renders skeleton placeholder when `loading` is `true`
+  - [x] Renders "No data" placeholder when `holdings` is empty and not loading
 - **Tests:** none
 - **Gate:** quick
 
@@ -120,10 +120,10 @@ Phase 4 ── T8: Wire App.jsx (serial)
 - **Reuses:** Tailwind `animate-pulse`; Lucide React `AlertCircle`
 - **Requirement:** FEAT-11, FEAT-12
 - **Done when:**
-  - [ ] Renders summary text when `aiSummary` is a non-empty string
-  - [ ] Renders `animate-pulse` skeleton when `loading` is `true` or `aiSummary` is `null` (not yet loaded)
-  - [ ] Renders "AI summary unavailable" message with `AlertCircle` icon when `apiKeyMissing` prop is `true`
-  - [ ] Card container always renders — never a blank gap in the layout
+  - [x] Renders summary text when `aiSummary` is a non-empty string
+  - [x] Renders `animate-pulse` skeleton when `loading` is `true` or `aiSummary` is `null` (not yet loaded)
+  - [x] Renders "AI summary unavailable" message with `AlertCircle` icon when `apiKeyMissing` prop is `true`
+  - [x] Card container always renders — never a blank gap in the layout
 - **Tests:** none
 - **Gate:** quick
 
@@ -137,12 +137,12 @@ Phase 4 ── T8: Wire App.jsx (serial)
 - **Reuses:** Lucide React `RefreshCw` (sync icon), `Clock` (timestamp), `AlertTriangle` (error badge)
 - **Requirement:** FEAT-06, FEAT-07, FEAT-08, FEAT-14
 - **Done when:**
-  - [ ] "Wealth Butler" title renders on the left
-  - [ ] Sync button is on the right; shows `RefreshCw` with `animate-spin` class when `syncing` is `true`
-  - [ ] Sync button is `disabled` and visually muted when `syncing` is `true`
-  - [ ] `lastUpdated` displayed as `Intl.DateTimeFormat('en-AU', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(lastUpdated))` next to the button
-  - [ ] "Never synced" shown when `lastUpdated` is `null`
-  - [ ] One `AlertTriangle` badge per item in `errors[]` labelled with `source`
+  - [x] "Wealth Butler" title renders on the left
+  - [x] Sync button is on the right; shows `RefreshCw` with `animate-spin` class when `syncing` is `true`
+  - [x] Sync button is `disabled` and visually muted when `syncing` is `true`
+  - [x] `lastUpdated` displayed as `Intl.DateTimeFormat('en-AU', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(lastUpdated))` next to the button
+  - [x] "Never synced" shown when `lastUpdated` is `null`
+  - [x] One `AlertTriangle` badge per item in `errors[]` labelled with `source`
 - **Tests:** none
 - **Gate:** quick
 
@@ -155,9 +155,9 @@ Phase 4 ── T8: Wire App.jsx (serial)
 - **Depends on:** T2, T3, T4, T5, T6, T7
 - **Requirement:** FEAT-01
 - **Done when:**
-  - [ ] `npm run dev` renders the Dashboard (not the blank Vite template)
-  - [ ] No React console errors on initial load
-  - [ ] Page title in `index.html` updated to "Wealth Butler"
+  - [x] `npm run dev` renders the Dashboard (not the blank Vite template)
+  - [x] No React console errors on initial load
+  - [x] Page title in `index.html` updated to "Wealth Butler"
 - **Tests:** none
 - **Gate:** full (visual check in browser — confirm layout renders correctly)
 
@@ -170,10 +170,10 @@ Phase 4 ── T8: Wire App.jsx (serial)
 - **Depends on:** T2, T7, T8
 - **Requirement:** FEAT-13, FEAT-08
 - **Done when:**
-  - [ ] When `portfolio === null` and `loading === false`: renders centred empty state card with "Sync to load your portfolio" button (calls `onSync`)
-  - [ ] When `error` is non-null: renders a dismissible red banner at the top of the dashboard
-  - [ ] Error banner does not replace existing portfolio data — both shown simultaneously
-  - [ ] Dismissing the banner sets `error = null`
+  - [x] When `portfolio === null` and `loading === false`: renders centred empty state card with "Sync to load your portfolio" button (calls `onSync`)
+  - [x] When `error` is non-null: renders a dismissible red banner at the top of the dashboard
+  - [x] Error banner does not replace existing portfolio data — both shown simultaneously
+  - [x] Dismissing the banner sets `error = null`
 - **Tests:** none
 - **Gate:** quick
 
