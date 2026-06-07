@@ -1,7 +1,5 @@
+import Dashboard from './components/Dashboard';
+
 export default function App() {
-  return (
-    <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-      <h1 className="text-3xl font-semibold tracking-tight">Wealth Butler</h1>
-    </div>
-  )
+  return <Dashboard />;
 }
