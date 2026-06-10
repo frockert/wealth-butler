@@ -4,15 +4,15 @@ import Skeleton from './ui/Skeleton';
 
 export default function MarketSummaryCard({ aiSummary, loading, apiKeyMissing }) {
   return (
-    <Card className="rounded-2xl">
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-        AI Market Summary
+    <Card variant="sand">
+      <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#111111] mb-3">
+        AI market summary
       </h2>
 
       {apiKeyMissing ? (
-        <div className="flex items-center gap-2 text-gray-400">
+        <div className="flex items-center gap-2 text-[#888888]">
           <AlertCircle size={20} className="shrink-0" />
-          <span className="text-sm">AI summary unavailable</span>
+          <span className="text-[13px]">AI summary unavailable</span>
         </div>
       ) : loading || aiSummary === null ? (
         <div className="flex flex-col gap-2">
@@ -21,7 +21,7 @@ export default function MarketSummaryCard({ aiSummary, loading, apiKeyMissing })
           <Skeleton className="h-3 w-4/6" />
         </div>
       ) : (
-        <p className="text-sm text-gray-700 leading-relaxed">{aiSummary}</p>
+        <p className="text-[13px] text-[#111111] leading-relaxed">{aiSummary}</p>
       )}
     </Card>
   );

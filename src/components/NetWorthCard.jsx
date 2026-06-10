@@ -5,12 +5,12 @@ const fmt = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' 
 
 export default function NetWorthCard({ netWorth, loading }) {
   return (
-    <Card>
-      <p className="text-sm font-medium text-gray-500 mb-1">Net Worth</p>
+    <Card variant="mint-hero">
+      <p className="text-[11px] font-normal uppercase tracking-[0.06em] text-[#888888] mb-3">Net worth</p>
       {loading ? (
-        <Skeleton className="h-9 w-48" />
+        <Skeleton className="h-10 w-52" />
       ) : (
-        <p className="text-3xl font-bold text-gray-900">{fmt.format(netWorth ?? 0)}</p>
+        <p className="font-mono text-[36px] font-bold text-[#111111] leading-none">{fmt.format(netWorth ?? 0)}</p>
       )}
     </Card>
   );
