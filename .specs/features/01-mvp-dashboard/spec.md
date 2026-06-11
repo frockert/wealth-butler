@@ -8,7 +8,7 @@
 
 The investor currently tracks IBKR (business + personal) and Coinspot holdings across two separate platforms and a manual spreadsheet that quickly falls out of date. There is no single view of combined net worth, no allocation breakdown, no goal tracking, and no way to answer "where do I stand?" without opening multiple apps.
 
-Iteration 1 delivers the three-page MVP that replaces the spreadsheet: a Dashboard with 5 summary metric cards, configurable allocation charts, a FIRE goal progress section, and an AI market summary; an Assets page with full holdings table, platform connections, and manual asset/liability management; and a Goals page for setting and tracking FIRE goals.
+Iteration 1 delivers a Kubera-style three-page MVP that replaces the spreadsheet: a Dashboard with 5 summary metric cards, configurable allocation charts, a FIRE goal progress section, and an AI market summary; an Assets page with full holdings table, a **+ Asset** connect modal (broker login + CSV upload + manual entry), and liability management; and a Goals page for setting and tracking FIRE goals. Data enters the app via **CSV upload first** (IBKR + Coinspot, AI-assisted parsing), then **live broker connections** as soon as possible.
 
 ---
 
@@ -23,6 +23,25 @@ Iteration 1 delivers the three-page MVP that replaces the spreadsheet: a Dashboa
 | All holdings in one place | Full holdings table available on Assets page with every IBKR + Coinspot position |
 | Manual assets and liabilities tracked | Non-broker assets and debts enterable on Assets page |
 | Replace spreadsheet | Investor stops opening the spreadsheet for daily portfolio checks |
+| Connect brokers Kubera-style | + Asset modal on Assets page: connect IBKR/Coinspot or upload CSV; live OAuth/API flows ship after CSV path works |
+
+---
+
+## Implementation Status (as of 2026-06-11)
+
+| Area | Status | Notes |
+|------|--------|-------|
+| API client + sync + error handling | **Done** (T1, T3, T7, T9) | `src/api/portfolio.js`, Header, empty state |
+| Net Worth card (basic) | **Partial** (T3) | Value + skeleton only; Investable/CAGR in T11 |
+| Holdings table component | **Done** (T4) | Still on Dashboard; moves to Assets in T14 |
+| Allocation chart (single sector) | **Partial** (T5) | 4-tab panel in T12 |
+| AI market summary | **Done** (T6) | |
+| Sidebar navigation | **Not started** (T10) | Visual shell only |
+| 5 summary cards + dashboard layout | **Not started** (T11) | |
+| Goal progress card | **Not started** (T13) | |
+| Assets page + connect modal | **Done** (T14) | |
+| Goals page | **Done** (T15) | |
+| Backend (CSV + live brokers) | **Not started** (T16–T18) | No backend in repo yet |
 
 ---
 
@@ -30,7 +49,7 @@ Iteration 1 delivers the three-page MVP that replaces the spreadsheet: a Dashboa
 
 | Item | Reason / Deferred To |
 |------|----------------------|
-| CSV import | Iteration 2 |
+| CSV import for banks / super | Iteration 2 — IBKR + Coinspot CSV in Iteration 1 |
 | CAGR on Net Worth card | Requires 1+ month of stored snapshots — shows "available after 1 month" placeholder |
 | 1-month delta on Assets card | Requires stored snapshots — 1-day and 1-week only for MVP |
 | Allocation rule alerts (200 DMA, concentration) | Iteration 2+ |
@@ -175,20 +194,66 @@ Chart type definitions:
 
 ---
 
-### US-07 — Manage Assets, Liabilities, and Platform Connections `[P2]`
+### US-07 — Manage Assets via + Asset Modal and Liabilities `[P1]`
 
-> As a self-directed investor, I want a dedicated Assets page where I can see all my holdings, manage platform connections, add manual assets, and record liabilities, so that I have a complete picture of my balance sheet in one place.
+> As a self-directed investor, I want a dedicated Assets page where I can see all my holdings and open a **+ Asset** modal to connect brokers, upload CSV exports, or add manual assets — plus record liabilities — so that I have a Kubera-style balance sheet in one place.
 
-**Why P2:** Required for the complete financial picture vision; debts are needed to feed the Debts card on Dashboard.
+**Why P1:** Required for spreadsheet replacement and broker connection UX; debts feed the Debts card on Dashboard.
+
+**Assets page layout:**
+1. **Holdings table** (US-02) with a **+ Asset** button in the table header
+2. **Connected platforms row** — compact status for IBKR Business, IBKR Personal, Coinspot (source, last sync, Connected / Not connected)
+3. **Liabilities section** — form + list below the table
+
+**+ Asset modal** (opens from + Asset button):
+- **Connect broker** tab — IBKR Business, IBKR Personal, Coinspot; each shows connect flow (live OAuth/API when T18 ready) or "Upload CSV instead"
+- **Upload CSV** tab — file picker per platform; sends file to backend `POST /api/import/csv`; shows parsing progress
+- **Add manual asset** tab — name, type (Cash / Property / Super / Other), value (AUD)
 
 **Acceptance Criteria:**
-- WHEN I navigate to the Assets page THEN I SHALL see: a holdings table (US-02), a connected platforms section, a manual assets section, and a liabilities section
-- WHEN I add a liability (name, type, AUD amount) THEN it SHALL appear in the liabilities list, be persisted to localStorage, and the Dashboard Debts card SHALL reflect the updated total
-- WHEN I add a manual asset THEN it SHALL persist to localStorage
+- WHEN I click **+ Asset** on the Assets page THEN a modal SHALL open with Connect broker | Upload CSV | Add manual asset options
+- WHEN I upload an IBKR or Coinspot CSV THEN the backend SHALL parse it (AI-assisted when configured) and holdings SHALL appear in the table after sync
+- WHEN I add a manual asset via the modal THEN it SHALL persist to `localStorage` `wb-manual-assets`
+- WHEN I add a liability (name, type, AUD amount) THEN it SHALL appear in the liabilities list, persist to `localStorage`, and the Dashboard Debts card SHALL reflect the updated total
 - Form validation: name not empty, value > 0; inline error if invalid
 - Previously added entries SHALL persist across page refreshes
+- WHEN a platform is connected (live or via CSV) THEN the connected platforms row SHALL show Connected status and last-updated time
 
-**Test:** Add a liability. Confirm it persists on refresh and the Dashboard Debts card updates.
+**Test:** Open + Asset modal. Upload Coinspot CSV. Sync. Confirm holdings appear. Add a liability. Confirm Debts card updates on Dashboard.
+
+---
+
+### US-09 — Import Portfolio Data via CSV (AI-assisted) `[P1]`
+
+> As a self-directed investor, I want to upload IBKR and Coinspot CSV exports and have them parsed into holdings automatically, so that I can use the app immediately without waiting for live broker APIs.
+
+**Why P1:** First working data path; unblocks daily use before live broker connections (US-10).
+
+**Acceptance Criteria:**
+- WHEN I upload a CSV via the + Asset modal THEN the app SHALL send it to `POST /api/import/csv` with `platform` (`ibkr-business` | `ibkr-personal` | `coinspot`)
+- WHEN parsing succeeds THEN normalized holdings SHALL match the portfolio schema (`ticker`, `exchange`, `qty`, `price`, `valueAUD`, `sector`, `assetType`)
+- WHEN `ANTHROPIC_API_KEY` is configured THEN the backend SHALL use Claude to normalize non-standard CSV layouts; otherwise a deterministic parser SHALL handle known IBKR/Coinspot export formats
+- WHEN parsing fails THEN an inline error SHALL describe the failure; the previous portfolio data SHALL be preserved
+- WHEN sync runs after a successful import THEN holdings from all uploaded sources SHALL be merged in the portfolio response
+
+**Test:** Upload IBKR business CSV and Coinspot CSV. Sync. Confirm merged holdings in Assets table with correct exchange labels.
+
+---
+
+### US-10 — Connect Live Broker Accounts `[P2]`
+
+> As a self-directed investor, I want to connect IBKR and Coinspot accounts through the same + Asset modal (Kubera-style), so that holdings update automatically without manual CSV uploads.
+
+**Why P2:** Target UX after CSV path works; more complex than CSV but avoids repeated manual exports.
+
+**Acceptance Criteria:**
+- WHEN I select Connect broker → IBKR Business / IBKR Personal in the + Asset modal THEN a connect flow SHALL initiate (Client Portal Gateway or credentials form per backend implementation)
+- WHEN I select Connect broker → Coinspot THEN an API key / OAuth flow SHALL initiate
+- WHEN connection succeeds THEN the platform row SHALL show Connected and sync SHALL pull live holdings
+- WHEN connection fails THEN an inline error SHALL appear with retry; CSV upload remains available as fallback
+- Credentials SHALL be stored server-side only (`.env` or secure store — never in localStorage)
+
+**Test:** Connect Coinspot via API. Sync. Confirm holdings update without CSV upload. Disconnect and confirm status returns to Not connected.
 
 ---
 
@@ -222,7 +287,11 @@ Chart type definitions:
 | Tax estimate unavailable (no cost basis) | Tax Estimate card shows "No cost basis data" state |
 | Chart type has no matching holdings | "No data" empty state inside chart panel |
 | Goals page — API key missing | Manual fallback form shown; AI guidance skipped gracefully |
-| Assets page — no manual assets / liabilities | Empty state with dashed-border "Add your first…" prompt in each section |
+| Assets page — no holdings | Holdings table empty state with "+ Asset" CTA |
+| Assets page — no liabilities | Empty state with dashed-border "Add your first liability" prompt |
+| CSV upload — unrecognised format | Inline error in modal; file not stored; previous data preserved |
+| CSV upload — partial parse | Warning badge on platform row; successfully parsed rows shown |
+| Broker connect — credentials invalid | Inline error in modal; CSV fallback still available |
 | Goal not yet configured — Dashboard | Goal card shows CTA to Goals page, not broken/empty |
 
 ---
@@ -251,11 +320,15 @@ Chart type definitions:
 | FEAT-18 | AI summary loading skeleton | US-05 | P2 |
 | FEAT-19 | Goal progress summary card on Dashboard | US-06 | P2 |
 | FEAT-20 | Goal card CTA → Goals page when no goal configured | US-06 | P2 |
-| FEAT-21 | Assets page — connected platform list with status | US-07 | P2 |
-| FEAT-22 | Assets page — manual asset entry form with validation | US-07 | P2 |
+| FEAT-21 | Assets page — connected platform status row | US-07 | P1 |
+| FEAT-22 | + Asset modal — Connect broker / Upload CSV / Manual asset tabs | US-07 | P1 |
 | FEAT-23 | Assets page — liabilities section with form + list | US-07 | P1 |
 | FEAT-24 | Manual assets + liabilities persisted to localStorage | US-07 | P1 |
 | FEAT-25 | Debts card updates when liabilities change | US-07 | P1 |
+| FEAT-33 | CSV upload endpoint + AI-assisted parsing (IBKR + Coinspot) | US-09 | P1 |
+| FEAT-34 | Merged holdings from multiple sources in portfolio API | US-09 | P1 |
+| FEAT-35 | Live IBKR connection (business + personal) | US-10 | P2 |
+| FEAT-36 | Live Coinspot connection | US-10 | P2 |
 | FEAT-26 | Goals page — AI-guided setup flow (3-step) | US-08 | P1 |
 | FEAT-27 | Goals page — manual fallback when API key missing | US-08 | P1 |
 | FEAT-28 | Goals page — goal config display and inline edit | US-08 | P1 |
@@ -268,25 +341,40 @@ Chart type definitions:
 
 ## Success Criteria
 
-- [ ] Dashboard renders without console errors from `npm run dev`
-- [ ] All 5 summary cards display after sync with correct values
-- [ ] Net Worth = Total Assets − Debts
-- [ ] Total Assets card shows 1-day and 1-week deltas with correct colour coding
-- [ ] Cash on Hand matches sum of cash-type holdings
-- [ ] Debts card updates when liabilities are added/removed on Assets page
-- [ ] Tax Estimate card shows value or graceful unavailable state
-- [ ] Sync button shows spinner during fetch; timestamp updates on success
-- [ ] Sync failure shows error banner without losing last known data
-- [ ] Configurable chart panel renders all 4 chart types correctly
-- [ ] AI summary card shows content after sync; skeleton shown before sync
-- [ ] Empty state shown before first sync
-- [ ] Goal progress card shows FIRE progress when goal is configured
-- [ ] Goal card shows "Set up FIRE goal" CTA when no goal exists
-- [ ] Sidebar navigation switches between Dashboard, Assets, and Goals pages
-- [ ] Assets page shows full holdings table sorted by value descending
-- [ ] Assets page shows connected platform status
-- [ ] Manual asset and liability entry validates and persists to localStorage
-- [ ] Goals AI-guided setup flow completes and saves a goal config
-- [ ] Goals manual fallback works when API key is absent
-- [ ] Goal fields editable on Goals page; changes persist
-- [ ] Investor stops using the spreadsheet for daily IBKR + Coinspot checks
+### Frontend (T1–T15)
+
+- [x] Dashboard renders without console errors from `npm run dev` (T8)
+- [ ] All 5 summary cards display after sync with correct values (T11)
+- [ ] Net Worth = Total Assets − Debts (T11)
+- [ ] Total Assets card shows 1-day and 1-week deltas with correct colour coding (T11)
+- [ ] Cash on Hand matches sum of cash-type holdings (T11)
+- [x] Debts card updates when liabilities are added/removed on Assets page (T11 + T14)
+- [ ] Tax Estimate card shows value or graceful unavailable state (T11)
+- [x] Sync button shows spinner during fetch; timestamp updates on success (T7)
+- [x] Sync failure shows error banner without losing last known data (T9)
+- [ ] Configurable chart panel renders all 4 chart types correctly (T12)
+- [x] AI summary card shows content after sync; skeleton shown before sync (T6)
+- [x] Empty state shown before first sync (T9)
+- [ ] Goal progress card shows FIRE progress when goal is configured (T13)
+- [ ] Goal card shows "Set up FIRE goal" CTA when no goal exists (T13)
+- [ ] Sidebar navigation switches between Dashboard, Assets, and Goals pages (T10)
+- [x] Holdings table component works (sorted by value, all columns) — on Dashboard until T14 moves it (T4)
+- [x] Assets page shows full holdings table sorted by value descending (T14)
+- [x] + Asset modal opens with Connect / CSV / Manual tabs (T14)
+- [x] Connected platform status row shows per-source status (T14)
+- [x] Manual asset and liability entry validates and persists to localStorage (T14)
+- [x] Goals AI-guided setup flow completes and saves a goal config (T15)
+- [x] Goals manual fallback works when API key is absent (T15)
+- [x] Goal fields editable on Goals page; changes persist (T15)
+
+### Backend (T16–T18)
+
+- [ ] IBKR + Coinspot CSV upload parses into normalized holdings (T16)
+- [ ] Sync merges holdings from all connected/uploaded sources (T16)
+- [ ] Portfolio API returns `assetsTotal`, `cashOnHand`, `taxEstimate`, `delta`, `assetType` (T16)
+- [x] Live IBKR connection pulls holdings on sync (T17)
+- [x] Live Coinspot connection pulls holdings on sync (T18)
+
+### Exit criterion
+
+- [ ] Investor stops using the spreadsheet for daily IBKR + Coinspot checks (requires T16 CSV path minimum)

@@ -5,7 +5,7 @@ import Skeleton from './ui/Skeleton';
 export default function MarketSummaryCard({ aiSummary, loading, apiKeyMissing }) {
   return (
     <Card variant="sand">
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#111111] mb-3">
+      <h2 className="label-mono text-[#111111] mb-3">
         AI market summary
       </h2>
 

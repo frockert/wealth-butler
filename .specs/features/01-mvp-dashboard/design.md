@@ -210,10 +210,19 @@ Portfolio state is hoisted to App (not Dashboard) because `AssetsPage` also need
 ---
 
 ### AssetsPage (new — T14)
-- **Purpose:** Holdings table + platform connections + manual assets + liabilities
+- **Purpose:** Holdings table with + Asset entry point, connected platforms row, liabilities section
 - **Location:** `src/components/AssetsPage.jsx`
-- **Props:** `{ holdings: Array, loading: Boolean }`
-- **Sections:** Holdings table | Platform connections | Manual assets | Liabilities
+- **Props:** `{ holdings: Array, loading: Boolean, connections: Array, onSync: Function }`
+- **Sections:** Holdings table (+ Asset button) | Connected platforms row | Liabilities
+
+### AddAssetModal (new — T14)
+- **Purpose:** Kubera-style connect/manage popup — broker connect, CSV upload, manual asset entry
+- **Location:** `src/components/AddAssetModal.jsx`
+- **Props:** `{ open: Boolean, onClose: Function, onCsvUpload: Function, onManualAssetAdd: Function, connections: Array }`
+- **Tabs:** Connect broker | Upload CSV | Add manual asset
+- **Connect broker:** IBKR Business, IBKR Personal, Coinspot cards; Connect button → backend connect endpoints (T17/T18); "Upload CSV instead" fallback link
+- **Upload CSV:** Platform selector + file input → `POST /api/import/csv` (T16)
+- **Add manual asset:** Form → `localStorage` `wb-manual-assets`
 
 ---
 

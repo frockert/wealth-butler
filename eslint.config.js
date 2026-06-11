@@ -23,6 +23,9 @@ export default [
         fetch: "readonly",
         URL: "readonly",
         process: "readonly",
+        localStorage: "readonly",
+        FormData: "readonly",
+        crypto: "readonly",
       },
     },
     settings: {

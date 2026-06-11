@@ -33,7 +33,7 @@
   - All sectors distribution (stocks + crypto + other)
   - Crypto distribution
   - Investable assets ex-cash
-- **Assets** — manual asset entry + platform connections. Two broker integrations supported at launch; architecture supports additional integrations. All other assets entered manually.
+- **Assets** — holdings table with **+ Asset** modal (Kubera-style): connect IBKR/Coinspot, upload CSV (AI-assisted), or add manual assets; liabilities section. CSV-first data path (IBKR + Coinspot), then live broker connections. Architecture supports additional integrations.
 - **Goals** — AI-guided setup flow (prompted questions → generates goal config); goal page is fully editable after setup. Tracks FIRE target, timeline, and current progress.
 
 **Out of scope:**

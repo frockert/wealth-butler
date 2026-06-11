@@ -4,6 +4,20 @@
 
 ---
 
+## Implementation Progress (~95% — T17/T18 live connections done)
+
+| Done (T1–T18) | Remaining |
+|---------------------|--------------------------------|
+| API client, sync, error banner, empty state, navigation | Iteration 2 features |
+| 5-card layout, chart tabs, GoalProgressCard, Goals page | |
+| Assets page, +Asset modal, liabilities | |
+| NetWorthCard (investable), AllocationChart tabs | |
+| MarketSummaryCard, Header, Sidebar wired | |
+| Backend CSV ingest + portfolio API (T16) | |
+| **Live IBKR + Coinspot connections (T17/T18)** | |
+
+---
+
 ## Execution Plan
 
 ```
@@ -20,18 +34,23 @@ Phase 3 ── ┌─T3: NetWorthCard    ─┐
 Phase 4 ── T8: Wire App.jsx (serial)                                     ✅ Done
            T9: Empty state + error banner (serial)                       ✅ Done
               │
-Phase 5 ── T10: Wire navigation (Sidebar + App.jsx)
+Phase 5 ── T10: Navigation + hoist portfolio state to App                    ✅ Done
               │
-Phase 6 ── T11: Redesign Dashboard — summary cards + layout
+Phase 6 ── T11: Redesign Dashboard — summary cards + layout                ✅ Done
               │
 Phase 7 ── ┌─T12: Configurable chart panel  ─┐
-           └─T13: GoalProgressCard           ─┘ [P]
+           └─T13: GoalProgressCard           ─┘ [P]                        ✅ Done
               │
-Phase 8 ── ┌─T14: Assets page ─┐
-           └─T15: Goals page   ─┘ [P]
+Phase 8 ── ┌─T14: Assets page + +Asset modal ─┐                              ✅ T14 Done
+           └─T15: Goals page                 ─┘ [P]
+              │
+Phase 9 ── T16: Backend — CSV ingest + AI parse + portfolio API          ✅ Done
+              │
+Phase 10 ─ ┌─T17: Backend — live IBKR connection ─┐
+           └─T18: Backend — live Coinspot         ─┘ [P] after T16
 ```
 
-**Note on T3/T4:** These components exist and are done. T11 supersedes the Dashboard layout (replaces the two-column layout with the new 5-card summary + chart row). `HoldingsTable.jsx` is reused as-is in the Assets page (T14).
+**Note on T3/T4:** These components exist and are done. T11 supersedes the Dashboard layout (replaces the two-column layout with the new 5-card summary + chart row). `HoldingsTable.jsx` is reused in the Assets page (T14) with a + Asset button. T16 unblocks daily use via CSV before T17/T18 live connections ship.
 
 ---
 
@@ -132,23 +151,25 @@ Phase 8 ── ┌─T14: Assets page ─┐
 
 ---
 
-## Remaining Tasks (T10–T15)
+## Remaining Tasks (T10–T18)
 
-### T10 — Wire navigation (Sidebar + App.jsx)
+### T10 — Wire navigation and hoist portfolio state (Sidebar + App.jsx)
 
-- **What:** Connect `Sidebar.jsx` to `App.jsx`; track `activePage` state; render correct page or placeholder per nav item
-- **Where:** `src/App.jsx`, `src/components/Sidebar.jsx`
+- **What:** Connect `Sidebar.jsx` to `App.jsx`; track `activePage` state; **hoist** `portfolio`, `loading`, `syncing`, `error`, and `handleSync` from Dashboard to App so AssetsPage can access holdings without re-fetching
+- **Where:** `src/App.jsx`, `src/components/Sidebar.jsx`, `src/components/Dashboard.jsx` (remove fetch/sync state)
 - **Depends on:** T8
 - **Reuses:** `Sidebar.jsx` (exists, currently static)
 - **Requirement:** FEAT-30
 - **Done when:**
-  - [ ] `App.jsx` holds `activePage` state (default `'dashboard'`)
-  - [ ] `Sidebar` accepts `activePage` and `onNavigate` props; active item accent matches DESIGN-SYSTEM.md section mapping
-  - [ ] Clicking any nav item calls `onNavigate(page)` and updates `activePage`
-  - [ ] `activePage === 'dashboard'` → renders `<Dashboard />`
-  - [ ] `activePage === 'assets'` → renders `<AssetsPage />` placeholder (empty div — T14 fills it)
-  - [ ] `activePage === 'goals'` → renders `<GoalsPage />` placeholder (empty div — T15 fills it)
-  - [ ] `activePage === 'ai-advisor'` or `'integrations'` → renders centred "Coming in the next iteration" card
+  - [x] `App.jsx` holds `activePage` (default `'dashboard'`), `portfolio`, `loading`, `syncing`, `error` state
+  - [x] `App.jsx` fetches portfolio on mount; `handleSync` calls sync + re-fetch (moved from Dashboard)
+  - [x] `Sidebar` accepts `activePage` and `onNavigate` props; active item accent matches DESIGN-SYSTEM.md section mapping
+  - [x] Clicking any nav item calls `onNavigate(page)` and updates `activePage`
+  - [x] `activePage === 'dashboard'` → renders `<Dashboard portfolio={...} onNavigate={...} />`
+  - [x] `activePage === 'assets'` → renders `<AssetsPage />` placeholder (empty div — T14 fills it)
+  - [x] `activePage === 'goals'` → renders `<GoalsPage />` placeholder (empty div — T15 fills it)
+  - [x] `activePage === 'ai-advisor'` or `'integrations'` → renders centred "Coming in the next iteration" card
+  - [x] `Dashboard.jsx` no longer owns portfolio fetch/sync state
 - **Tests:** none
 - **Gate:** quick
 
@@ -202,16 +223,16 @@ Header (full width)
 ```
 
 - **Done when:**
-  - [ ] New layout renders without errors — 5 cards in Row 1, goal placeholder in Row 2, chart+AI in Row 3
-  - [ ] `HoldingsTable` is no longer rendered in `Dashboard.jsx`
-  - [ ] `NetWorthCard` shows main net worth value + "Investable" sub-value (assets total minus cash holdings)
-  - [ ] `TotalAssetsCard` shows assets total + 1-day and 1-week deltas with colour coding (red/green per sign)
-  - [ ] `CashOnHandCard` shows `cashOnHand` value (from `portfolio.cashOnHand` or derived from holdings)
-  - [ ] `DebtsCard` reads `wb-liabilities` from localStorage on render; shows sum as main value
-  - [ ] `TaxEstimateCard` shows `portfolio.taxEstimate` if present; "No cost basis data" state if null
-  - [ ] All 5 cards show `animate-pulse` skeleton when `loading` is `true`
-  - [ ] Dashboard reads `wb-liabilities` from localStorage to compute `debtsTotal` and derive `netWorth = assetsTotal − debtsTotal`
-  - [ ] Empty state (pre-sync) still renders as before (T9 behaviour preserved)
+  - [x] New layout renders without errors — 5 cards in Row 1, goal placeholder in Row 2, chart+AI in Row 3
+  - [x] `HoldingsTable` is no longer rendered in `Dashboard.jsx`
+  - [x] `NetWorthCard` shows main net worth value + "Investable" sub-value (assets total minus cash holdings)
+  - [x] `TotalAssetsCard` shows assets total + 1-day and 1-week deltas with colour coding (red/green per sign)
+  - [x] `CashOnHandCard` shows `cashOnHand` value (from `portfolio.cashOnHand` or derived from holdings)
+  - [x] `DebtsCard` reads `wb-liabilities` from localStorage on render; shows sum as main value
+  - [x] `TaxEstimateCard` shows `portfolio.taxEstimate` if present; "No cost basis data" state if null
+  - [x] All 5 cards show `animate-pulse` skeleton when `loading` is `true`
+  - [x] Dashboard reads `wb-liabilities` from localStorage to compute `debtsTotal` and derive `netWorth = assetsTotal − debtsTotal`
+  - [x] Empty state (pre-sync) still renders as before (T9 behaviour preserved)
 - **Tests:** none
 - **Gate:** full (visual check — confirm all 5 cards render with correct values after a sync)
 
@@ -230,12 +251,12 @@ Header (full width)
   - **Crypto distribution** — `holdings.filter(h => h.assetType === 'crypto')`
   - **Investable ex-cash** — `holdings.filter(h => h.assetType !== 'cash')`
 - **Done when:**
-  - [ ] 4 tab buttons rendered above the chart; "Stock sectors" active by default
-  - [ ] Active tab is visually differentiated
-  - [ ] Clicking a tab updates `chartType` state and re-renders with correct data
-  - [ ] "No data" empty state when filtered holdings is empty
-  - [ ] Tooltip continues to show sector name + AUD value on hover
-  - [ ] Skeleton renders when `loading` is `true` (tabs not shown during load)
+  - [x] 4 tab buttons rendered above the chart; "Stock sectors" active by default
+  - [x] Active tab is visually differentiated
+  - [x] Clicking a tab updates `chartType` state and re-renders with correct data
+  - [x] "No data" empty state when filtered holdings is empty
+  - [x] Tooltip continues to show sector name + AUD value on hover
+  - [x] Skeleton renders when `loading` is `true` (tabs not shown during load)
 - **Tests:** none
 - **Gate:** quick
 
@@ -249,43 +270,52 @@ Header (full width)
 - **Reuses:** `localStorage` key `wb-goal-config`; Lucide `Target` icon; accent-purple tokens
 - **Requirement:** FEAT-19, FEAT-20
 - **Done when:**
-  - [ ] Reads goal config from `localStorage.getItem('wb-goal-config')` synchronously on render
-  - [ ] When no goal: accent-purple card with `Target` icon and "Set up your FIRE goal →" button; calls `onNavigate('goals')` prop
-  - [ ] When goal exists: accent-purple card showing FIRE target (AUD), current net worth, progress bar (`currentNetWorth / targetAUD × 100`), and target year
-  - [ ] Progress bar uses `#00c48c` fill; capped at 100%
-  - [ ] `onNavigate` prop passed from Dashboard to GoalProgressCard
-  - [ ] Card always renders — never a blank gap
+  - [x] Reads goal config from `localStorage.getItem('wb-goal-config')` synchronously on render
+  - [x] When no goal: accent-purple card with `Target` icon and "Set up your FIRE goal →" button; calls `onNavigate('goals')` prop
+  - [x] When goal exists: accent-purple card showing FIRE target (AUD), current net worth, progress bar (`currentNetWorth / targetAUD × 100`), and target year
+  - [x] Progress bar uses `#00c48c` fill; capped at 100%
+  - [x] `onNavigate` prop passed from Dashboard to GoalProgressCard
+  - [x] Card always renders — never a blank gap
 - **Tests:** none
 - **Gate:** quick
 
 ---
 
-### T14 — Create Assets page `[P]`
+### T14 — Create Assets page + +Asset modal `[P]`
 
-- **What:** Full Assets page — holdings table (moved from Dashboard), connected platform list, manual asset entry, and liabilities management
-- **Where:** `src/components/AssetsPage.jsx`
+- **What:** Assets page with holdings table (+ Asset button), connected platforms row, +Asset modal (Connect broker / Upload CSV / Manual asset), and liabilities section
+- **Where:**
+  - `src/components/AssetsPage.jsx` — new
+  - `src/components/AddAssetModal.jsx` — new
+  - `src/api/portfolio.js` — add `uploadCsv(platform, file)` → `POST /api/import/csv`
 - **Depends on:** T10
-- **Reuses:** `HoldingsTable.jsx` (already built in T4); Lucide `Plus`, `Trash2` icons; `localStorage` keys `wb-manual-assets`, `wb-liabilities`
+- **Reuses:** `HoldingsTable.jsx` (T4); Lucide `Plus`, `Trash2`, `Upload`, `Link` icons; `localStorage` keys `wb-manual-assets`, `wb-liabilities`
 - **Requirement:** FEAT-09, FEAT-10, FEAT-11, FEAT-21, FEAT-22, FEAT-23, FEAT-24, FEAT-25
 
-**Page sections (top to bottom):**
-1. **Holdings table** — renders `<HoldingsTable holdings={holdings} loading={loading} />` using portfolio data from the sync API; portfolio state passed down via props
-2. **Platform connections** — static list: IBKR Business (Connected), IBKR Personal (Connected), Coinspot (Connected)
-3. **Manual assets** — form + list; localStorage `wb-manual-assets`
-4. **Liabilities** — form + list; localStorage `wb-liabilities`
+**Page layout (top to bottom):**
+1. **Holdings table** — `<HoldingsTable />` with **+ Asset** button in header; opens `AddAssetModal`
+2. **Connected platforms row** — IBKR Business, IBKR Personal, Coinspot: status badge (Connected / Not connected), last sync time
+3. **Liabilities** — form + list; localStorage `wb-liabilities`
+
+**+Asset modal tabs:**
+- **Connect broker** — platform cards (IBKR Business, IBKR Personal, Coinspot); Connect button calls backend connect endpoint (stub until T17/T18); "Upload CSV instead" links to Upload tab
+- **Upload CSV** — platform selector + file input; calls `uploadCsv()`; shows parsing spinner + success/error
+- **Add manual asset** — name, type (Cash / Property / Super / Other), value (AUD); saves to `wb-manual-assets`
 
 - **Done when:**
-  - [ ] `AssetsPage` receives `holdings` and `loading` props from `App.jsx` (App must hoist portfolio state or pass it)
-  - [ ] Holdings table renders using the existing `HoldingsTable` component
-  - [ ] Platform connections section shows 3 rows with "Connected" (mint badge) status
-  - [ ] "Add asset" form: name (text), type select (Cash / Property / Super / Other), value (AUD number) — validates and saves to `wb-manual-assets`
-  - [ ] "Add liability" form: name (text), type select (Mortgage / Loan / Credit Card / Other), value (AUD) — validates and saves to `wb-liabilities`
-  - [ ] Each manual entry shows name, type badge, AUD value, delete button
-  - [ ] Deleting an entry removes from localStorage
-  - [ ] Empty state (dashed border) shown when each section has no entries
-  - [ ] `wb-liabilities` writes trigger a `storage` event so Dashboard `DebtsCard` can re-read (or Dashboard refreshes debtsTotal on each render via localStorage read)
+  - [x] `AssetsPage` receives `holdings`, `loading`, `connections` (from portfolio) props from `App.jsx`
+  - [x] Holdings table renders with + Asset button; empty state CTA opens modal
+  - [x] `AddAssetModal` opens/closes; three tabs render; modal can be opened before T16 backend exists (CSV tab shows error gracefully)
+  - [x] Connected platforms row shows per-platform status from `portfolio.connections[]` or defaults to Not connected
+  - [x] Manual asset tab validates and saves to `wb-manual-assets`; manual assets listed in modal or compact section
+  - [x] Liabilities form: name, type (Mortgage / Loan / Credit Card / Other), value (AUD) — validates and saves to `wb-liabilities`
+  - [x] Each liability shows name, type badge, AUD value, delete button
+  - [x] Deleting an entry removes from localStorage
+  - [x] Liabilities empty state (dashed border) when no entries
+  - [x] `wb-liabilities` writes visible on Dashboard `DebtsCard` (localStorage read on render)
+  - [x] CSV upload calls `POST /api/import/csv` when T16 backend is available
 - **Tests:** none
-- **Gate:** quick
+- **Gate:** full (modal UX + liabilities; CSV works once T16 lands)
 
 ---
 
@@ -309,8 +339,8 @@ Header (full width)
 ```
 
 - **Done when:**
-  - [ ] On mount: reads `wb-goal-config` from localStorage; shows setup flow if null, config view if set
-  - [ ] **Setup flow** (3 steps):
+  - [x] On mount: reads `wb-goal-config` from localStorage; shows setup flow if null, config view if set
+  - [x] **Setup flow** (3 steps):
     - Step 1: "What's your FIRE target? (total AUD you need to retire)" — number input
     - Step 2: "By what year do you want to reach FIRE?" — number input
     - Step 3: "What are your current annual savings (AUD)?" — number input
@@ -318,12 +348,71 @@ Header (full width)
     - If `VITE_ANTHROPIC_API_KEY` present: sends answers to Claude API; renders AI-generated narrative + goal config; shows loading state ("Crunching your numbers...")
     - If key absent: calculates `monthlySavingsRequired = (targetAUD / monthsUntilTargetYear) - (annualSavings / 12)` client-side; sets `notes: 'Manually calculated'`
     - Generated config saved to `localStorage.setItem('wb-goal-config', JSON.stringify(config))`
-  - [ ] **Config view**: accent-purple card showing all 4 fields; each field has pencil icon that turns value into an editable input; saving writes to localStorage
-  - [ ] "Reset goal" button clears `wb-goal-config` and returns to setup flow
-  - [ ] AI call loading state shown with spinner; error state shows inline message + retry button (answers preserved)
-  - [ ] Step progression: "Next" advances, "Back" returns, step counter shown (e.g. "Step 1 of 3")
+  - [x] **Config view**: accent-purple card showing all 4 fields; each field has pencil icon that turns value into an editable input; saving writes to localStorage
+  - [x] "Reset goal" button clears `wb-goal-config` and returns to setup flow
+  - [x] AI call loading state shown with spinner; error state shows inline message + retry button (answers preserved)
+  - [x] Step progression: "Next" advances, "Back" returns, step counter shown (e.g. "Step 1 of 3")
 - **Tests:** none
 - **Gate:** full (complete setup flow end-to-end; confirm goal saves; confirm GoalProgressCard on Dashboard updates)
+
+---
+
+### T16 — Backend: CSV ingest, AI parse, portfolio API ✅
+
+- **What:** Hono (or Express) backend service: accept IBKR + Coinspot CSV uploads, normalize to holdings schema (AI-assisted when `ANTHROPIC_API_KEY` set), merge sources, expose `GET /api/portfolio` and `POST /api/sync` with full data model
+- **Where:** `server/` (new) or separate repo — `server/index.js`, `server/routes/import.js`, `server/routes/portfolio.js`, `server/parsers/ibkr.js`, `server/parsers/coinspot.js`, `server/parsers/ai-csv.js`
+- **Depends on:** none (can start in parallel with T10–T15 frontend)
+- **Requirement:** FEAT-33, FEAT-34; backend fields for T11
+- **Endpoints:**
+  - `POST /api/import/csv` — body: `{ platform, file }` multipart; stores parsed holdings per source
+  - `GET /api/portfolio` — merged portfolio response (see data model below)
+  - `POST /api/sync` — refreshes prices where possible; updates `lastUpdated`
+- **Done when:**
+  - [x] Backend runs on `localhost:3001` (matches `VITE_API_URL` default)
+  - [x] IBKR business + personal CSV exports parse to normalized holdings
+  - [x] Coinspot CSV export parses to normalized holdings
+  - [x] AI fallback parser handles non-standard CSV when API key present
+  - [x] Portfolio response includes `assetsTotal`, `cashOnHand`, `taxEstimate`, `delta`, `assetType` per holding
+  - [x] `portfolio.connections[]` reports per-platform status and `lastSync`
+  - [x] Multiple sources merge without duplicate tickers on same exchange
+  - [x] Parse errors return 4xx with descriptive message; do not wipe existing data
+- **Tests:** parser unit tests for known IBKR/Coinspot CSV samples ✅
+- **Gate:** full (upload CSV → sync → frontend shows holdings)
+
+---
+
+### T17 — Backend: live IBKR connection `[P]` ✅
+
+- **What:** Connect IBKR Business + Personal accounts via Client Portal Gateway (or Flex Query); pull holdings on sync
+- **Where:** `server/integrations/ibkr.js`, `server/routes/connect.js`
+- **Depends on:** T16
+- **Requirement:** FEAT-35
+- **Done when:**
+  - [x] `POST /api/connect/ibkr-business` and `POST /api/connect/ibkr-personal` initiate connection
+  - [x] Credentials stored server-side only (`.env` or secure config)
+  - [x] Sync pulls live holdings for connected IBKR accounts
+  - [x] Connection status reflected in `portfolio.connections[]`
+  - [x] Connect flow callable from +Asset modal Connect broker tab
+  - [x] CSV upload remains available as fallback when connection fails
+- **Tests:** none (manual with gateway)
+- **Gate:** full
+
+---
+
+### T18 — Backend: live Coinspot connection `[P]` ✅
+
+- **What:** Connect Coinspot via API keys; pull balances on sync
+- **Where:** `server/integrations/coinspot.js`, `server/routes/connect.js`
+- **Depends on:** T16
+- **Requirement:** FEAT-36
+- **Done when:**
+  - [x] `POST /api/connect/coinspot` accepts API key; validates and stores server-side
+  - [x] Sync pulls live crypto balances for connected Coinspot account
+  - [x] Connection status reflected in `portfolio.connections[]`
+  - [x] Connect flow callable from +Asset modal Connect broker tab
+  - [x] CSV upload remains available as fallback
+- **Tests:** none (manual with API key)
+- **Gate:** full
 
 ---
 
@@ -339,6 +428,8 @@ Header (full width)
 | 6 | T11 | No — establishes new layout before T12/T13 can slot in |
 | 7 | T12, T13 | **Yes `[P]`** — both need T11's layout slots but don't share state |
 | 8 | T14, T15 | **Yes `[P]`** — both need T10; no shared state |
+| 9 | T16 | No — first data path; can run parallel to Phases 5–8 |
+| 10 | T17, T18 | **Yes `[P]`** — both need T16 |
 
 ---
 
@@ -348,12 +439,15 @@ Header (full width)
 
 | Task | Single deliverable? | Estimated size |
 |------|---------------------|----------------|
-| T10 | ✅ navigation wiring | ~30 lines |
+| T10 | ✅ navigation + state hoist | ~60 lines |
 | T11 | ✅ layout + 4 new card components | ~150 lines total |
 | T12 | ✅ extend one component | ~40 lines |
 | T13 | ✅ one new component + Dashboard update | ~50 lines |
-| T14 | ✅ one page component | ~130 lines |
+| T14 | ✅ page + modal component | ~180 lines |
 | T15 | ✅ one page component | ~140 lines |
+| T16 | ✅ backend service + CSV parsers | ~300 lines |
+| T17 | ✅ IBKR integration | ~150 lines |
+| T18 | ✅ Coinspot integration | ~100 lines |
 
 ### Component Ownership Map
 
@@ -373,13 +467,17 @@ Header (full width)
 | `TaxEstimateCard.jsx` | New — T11 | Dashboard |
 | `GoalProgressCard.jsx` | New — T13 | Dashboard |
 | `AssetsPage.jsx` | New — T14 | Assets page |
+| `AddAssetModal.jsx` | New — T14 | Assets page (modal) |
 | `GoalsPage.jsx` | New — T15 | Goals page |
+| `server/` | New — T16–T18 | Backend |
 
 ### Persistence Strategy
 
 | Data | Storage | Written by | Read by |
 |------|---------|------------|---------|
-| Portfolio (holdings, net worth, deltas) | In-memory (App/Dashboard state) | Sync API | Dashboard, AssetsPage |
+| Portfolio (holdings, net worth, deltas) | In-memory (App state) + backend cache (T16) | Sync API / CSV import | Dashboard, AssetsPage |
+| CSV uploads | Backend file/cache per platform | `POST /api/import/csv` | Sync API |
+| Broker credentials | Server-side only (`.env` / secure store) | Connect endpoints (T17/T18) | Sync API |
 | Goal config | `localStorage` `wb-goal-config` | GoalsPage | GoalProgressCard, GoalsPage |
 | Manual assets | `localStorage` `wb-manual-assets` | AssetsPage | AssetsPage |
 | Liabilities | `localStorage` `wb-liabilities` | AssetsPage | DebtsCard (via Dashboard), AssetsPage |
@@ -400,8 +498,14 @@ The portfolio API response must include these fields (or be extended to include 
     assets1w:    Number,    // AUD change vs 7 days ago
     assets1wPct: Number,    // % change vs 7 days ago
   },
-  holdings: [...],          // unchanged — includes assetType field
+  holdings: [...],          // includes assetType field
+  connections: [            // NEW — per-platform status for Assets page
+    { platform: 'ibkr-business'|'ibkr-personal'|'coinspot', status: 'connected'|'disconnected', lastSync: String|null }
+  ],
   aiSummary: String|null,
+  apiKeyMissing: Boolean,
   errors: [...]
 }
 ```
+
+> **T11 fallback:** Until T16 ships, Dashboard can derive `assetsTotal` and `cashOnHand` from holdings client-side; show "–" for missing deltas/tax.

@@ -40,6 +40,24 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173).
 
+### Backend + broker connections
+
+```bash
+npm run server          # API on http://localhost:3001
+# or npm run dev:server
+```
+
+Copy `.env.example` to `.env` and set broker credentials (never commit `.env`):
+
+| Variable | Purpose |
+|----------|---------|
+| `IBKR_FLEX_TOKEN` + `IBKR_FLEX_QUERY_ID_BUSINESS` / `_PERSONAL` | IBKR Flex Query (recommended) |
+| `IBKR_GATEWAY_URL` + `IBKR_ACCOUNT_ID_*` | Client Portal Gateway alternative |
+| `COINSPOT_API_KEY` + `COINSPOT_API_SECRET` | Coinspot (or use + Asset modal) |
+| `ANTHROPIC_API_KEY` | AI CSV fallback + sync summary |
+
+Connect from **Assets → + Asset → Connect broker**, or upload CSV as fallback.
+
 ## Project structure
 
 ```

@@ -5,5 +5,6 @@ export default defineConfig({
   plugins: [react()],
   test: {
     passWithNoTests: true,
+    include: ['src/**/*.test.{js,jsx}', 'server/**/*.test.js'],
   },
 })

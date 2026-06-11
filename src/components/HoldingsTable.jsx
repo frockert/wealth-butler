@@ -21,12 +21,12 @@ export default function HoldingsTable({ holdings = [], loading = false }) {
 
   return (
     <div className="bg-white rounded-[4px] border-2 border-[#111111] shadow-[4px_4px_0_#111111] p-6 overflow-x-auto">
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#111111] mb-3">Holdings</h2>
+      <h2 className="label-mono text-[#111111] mb-3">Holdings</h2>
       <table className="w-full text-left">
         <thead>
           <tr className="border-b-2 border-[#111111]">
             {COLS.map((col) => (
-              <th key={col} className="px-4 py-2 text-[11px] font-normal uppercase tracking-[0.06em] text-[#888888]">{col}</th>
+              <th key={col} className="px-4 py-2 label-mono font-normal tracking-[0.06em] text-[#888888]">{col}</th>
             ))}
           </tr>
         </thead>

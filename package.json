@@ -5,13 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "node server/index.js",
+    "server": "node server/index.js",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
     "lint": "eslint src"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
+    "@hono/node-server": "^2.0.4",
     "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
+    "hono": "^4.12.25",
     "lucide-react": "^0.383.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

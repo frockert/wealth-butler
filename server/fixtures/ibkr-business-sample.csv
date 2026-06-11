@@ -1,0 +1,4 @@
+"Open Positions","Header","DataDiscriminator","Asset Category","Currency","Symbol","Description","Quantity","Mult","Cost Price","Cost Basis","Close Price","Value","Unrealized P/L","Code"
+"Open Positions","Data","Summary","Stocks","USD","AAPL","APPLE INC","50","1","150","7500","175","8750","1250",""
+"Open Positions","Data","Summary","Stocks","USD","MSFT","MICROSOFT CORP","30","1","300","9000","420","12600","3600",""
+"Open Positions","Data","Summary","Cash","AUD","AUD","AUSTRALIAN DOLLAR","10000","1","1","10000","1","10000","0",""

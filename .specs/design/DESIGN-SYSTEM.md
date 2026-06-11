@@ -9,9 +9,9 @@
 Swiss Neo-Brutalism: the structural rigour of Swiss editorial design fused with
 neo-brutalist rawness. Hard black borders, solid accent fills, zero gradients, zero
 blur-shadows, and bold hard-offset shadows give cards a physical "sticker on a table"
-feel. A strict typographic hierarchy — tracked uppercase section labels, proportional
-headings, monospace numerics — adds editorial precision and breathing room without
-softening the overall brutality. Pops of bright accent colour (mint, yellow, pink,
+feel. A strict typographic hierarchy — Space Mono uppercase labels with wide tracking,
+Space Grotesk body and display numerics — adds editorial precision and breathing room
+without softening the overall brutality. Pops of bright accent colour (mint, yellow, pink,
 purple) each map to a specific section, creating a spatial colour language across the
 dashboard. The black sidebar anchors the layout and reinforces the hard editorial spine.
 
@@ -68,22 +68,58 @@ not black. This gives each coloured card its own shadow personality.
 
 ## Typography
 
-**Display font:** Inter — load via Google Fonts.  
-**Numeric font:** `font-family: 'Courier New', Courier, monospace` — used for ALL financial values, percentages, and ticker symbols. This is the Swiss editorial touch: numbers feel precise and machine-read, not decorative.  
-System fallback: `-apple-system, BlinkMacSystemFont, sans-serif`
+Load both families via Google Fonts:
 
-| Role              | Size | Weight | Case / Style                     | Font       | Colour        |
-|-------------------|------|--------|----------------------------------|------------|---------------|
-| Hero value        | 36px | 700    | —                                | Monospace  | `text-primary`|
-| Card value        | 24px | 700    | —                                | Monospace  | `text-primary`|
-| Ticker / symbol   | 13px | 500    | Uppercase                        | Monospace  | `text-primary`|
-| Section heading   | 11px | 600    | UPPERCASE, letter-spacing: 0.08em| Inter      | `text-primary`|
-| Card label        | 11px | 400    | Uppercase, letter-spacing: 0.06em| Inter      | `text-muted`  |
-| Nav item          | 13px | 500    | Sentence case                    | Inter      | `text-inverted`|
-| Body / paragraph  | 13px | 400    | —                                | Inter      | `text-primary`|
-| Button            | 13px | 700    | Uppercase, letter-spacing: 0.04em| Inter      | (see Buttons) |
+```html
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+```
 
-**Rule:** Section headings and card labels are always tracked uppercase — this is the Swiss grid layer that lifts the layout above plain brutalism. Financial values are always monospace — no exceptions.
+### Font roles
+
+| Token / class   | Family         | Tailwind      | Usage |
+|-----------------|----------------|---------------|-------|
+| **Space Grotesk** | Geometric sans | `font-sans` (default) | All body text, headings, nav labels, buttons, and **big bold financial figures** (e.g. net worth hero value). Slightly quirky, modern — suits neo-brutalism. |
+| **Space Mono**    | Monospace      | `font-mono` + `.label-mono` | Uppercase, wide-tracked **labels** only — card titles ("NET WORTH"), delta tags ("1 DAY"), category names, table column headers. Old-school terminal character. |
+
+**System fallbacks:** `sans` → `-apple-system, BlinkMacSystemFont, sans-serif`; `mono` → `ui-monospace, monospace`.
+
+### `.label-mono` utility
+
+Small all-caps tags use Space Mono with explicit tracking — not `font-sans`:
+
+```css
+.label-mono {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+```
+
+Use `.label-mono` (or `font-mono` + matching size/tracking) for: card labels, section headings, delta period labels, chart tab labels, table header cells.
+
+### Type scale
+
+| Role              | Size | Weight | Case / Style                      | Font            | Colour        |
+|-------------------|------|--------|-----------------------------------|-----------------|---------------|
+| Hero value        | 36px | 700    | —                                 | `font-sans`     | `text-primary`|
+| Card value        | 24–28px | 700 | —                                 | `font-sans`     | `text-primary`|
+| Sub-value         | 18px | 600    | —                                 | `font-sans`     | `text-primary`|
+| Ticker / symbol   | 13px | 500    | Uppercase                         | `font-mono`     | `text-primary`|
+| Section heading   | 11px | 600    | UPPERCASE, letter-spacing: 0.08em | `.label-mono`   | `text-primary`|
+| Card label        | 11px | 400–600| Uppercase, letter-spacing: 0.06em | `.label-mono`   | `text-muted`  |
+| Nav item          | 13px | 500–600| Sentence case                     | `font-sans`     | `text-inverted`|
+| Body / paragraph  | 13px | 400    | —                                 | `font-sans`     | `text-primary`|
+| Button            | 13px | 700    | Uppercase, letter-spacing: 0.04em | `font-sans`     | (see Buttons) |
+| Table data        | 13px | 400–500| —                                 | `font-mono`     | `text-primary`|
+
+### Rules
+
+- **Labels** → Space Mono via `.label-mono` or `font-mono` with uppercase + tracking. This is the Swiss grid layer above plain brutalism.
+- **Display numbers** (net worth, card totals, goal targets) → Space Grotesk via `font-sans` — bold, geometric, not terminal-style.
+- **Tabular data** (holdings qty, price, allocation %) → `font-mono` for column alignment and precision.
+- Do not use Space Grotesk for small tracked uppercase labels; do not use Space Mono for hero net worth figures.
 
 ---
 
@@ -382,7 +418,21 @@ colors: {
   dashed:       '#bbbbbb',
 },
 fontFamily: {
-  sans:  ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-  mono:  ['"Courier New"', 'Courier', 'monospace'],
+  sans:  ['"Space Grotesk"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+  mono:  ['"Space Mono"', 'ui-monospace', 'monospace'],
 },
+```
+
+Add to `src/index.css` (or plugin):
+
+```css
+@layer utilities {
+  .label-mono {
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+}
 ```
