@@ -1,4 +1,4 @@
-# Design: MVP Dashboard
+# Design: Iteration 1 — MVP
 
 > **Iteration 1** | Requires: [spec.md](./spec.md)
 
@@ -8,127 +8,225 @@
 
 ```mermaid
 graph TD
-    App["App.jsx"]
-    Dashboard["Dashboard\nsrc/components/Dashboard.jsx\nOwns portfolio state"]
-    Header["Header\nsrc/components/Header.jsx\nSync button + timestamp"]
-    NetWorthCard["NetWorthCard\nsrc/components/NetWorthCard.jsx"]
-    HoldingsTable["HoldingsTable\nsrc/components/HoldingsTable.jsx"]
-    AllocationChart["AllocationChart\nsrc/components/AllocationChart.jsx"]
-    MarketSummaryCard["MarketSummaryCard\nsrc/components/MarketSummaryCard.jsx"]
-    APIClient["src/api/portfolio.js\nfetchPortfolio / syncPortfolio"]
-    Backend["Hono Backend :3001\nGET /api/portfolio\nPOST /api/sync"]
+    App["App.jsx\nactivePage state\nportfolio state (hoisted)"]
+    Sidebar["Sidebar\nnavigation + active state"]
+    Dashboard["Dashboard\nreads portfolio from App props\nreads wb-liabilities from localStorage"]
+    Header["Header\nSync button + timestamp"]
+    NetWorthCard["NetWorthCard\n(hero, accent-mint)"]
+    TotalAssetsCard["TotalAssetsCard\n1d/1w delta"]
+    CashOnHandCard["CashOnHandCard"]
+    DebtsCard["DebtsCard\nreads localStorage"]
+    TaxEstimateCard["TaxEstimateCard"]
+    GoalProgressCard["GoalProgressCard\nreads wb-goal-config"]
+    AllocationChart["AllocationChart\n4-tab chart panel"]
+    MarketSummaryCard["MarketSummaryCard"]
+    AssetsPage["AssetsPage\nHoldingsTable + platforms\n+ manual assets + liabilities"]
+    GoalsPage["GoalsPage\nAI setup + config view"]
+    APIClient["src/api/portfolio.js"]
+    Backend["Hono Backend :3001"]
+    LocalStorage["localStorage\nwb-goal-config\nwb-manual-assets\nwb-liabilities"]
 
+    App --> Sidebar
     App --> Dashboard
+    App --> AssetsPage
+    App --> GoalsPage
+    Sidebar -- "onNavigate" --> App
+    App -- "on mount + on sync" --> APIClient
+    APIClient -- "HTTP" --> Backend
     Dashboard --> Header
     Dashboard --> NetWorthCard
-    Dashboard --> HoldingsTable
+    Dashboard --> TotalAssetsCard
+    Dashboard --> CashOnHandCard
+    Dashboard --> DebtsCard
+    Dashboard --> TaxEstimateCard
+    Dashboard --> GoalProgressCard
     Dashboard --> AllocationChart
     Dashboard --> MarketSummaryCard
-    Dashboard -- "on mount + on sync" --> APIClient
-    APIClient -- "HTTP" --> Backend
-    Header -- "onSync callback" --> Dashboard
+    Header -- "onSync" --> App
+    GoalProgressCard -- "read" --> LocalStorage
+    GoalProgressCard -- "onNavigate('goals')" --> App
+    DebtsCard -- "read wb-liabilities" --> LocalStorage
+    AssetsPage -- "read/write" --> LocalStorage
+    GoalsPage -- "read/write wb-goal-config" --> LocalStorage
 ```
 
-**Data flow:** Dashboard owns all state. On mount it calls `fetchPortfolio()`. On sync click it calls `syncPortfolio()`, both provided by the API client. All child components are pure — they receive props and render.
+**Data flow:**
+- `App.jsx` owns both `activePage` and `portfolio` state. Portfolio state is hoisted to App so `AssetsPage` can access holdings without re-fetching. `App` passes portfolio down as props to Dashboard and AssetsPage.
+- `Sidebar` calls `onNavigate(page)` → `App` updates `activePage`.
+- Dashboard child cards are all pure render components. `DebtsCard` and `GoalProgressCard` read localStorage synchronously on render — no async.
+- `AssetsPage` writes to localStorage; `DebtsCard` on Dashboard re-reads `wb-liabilities` on each render (localStorage reads are synchronous and cheap).
 
 ---
 
-## Code Reuse Analysis
+## Dashboard Layout
 
-| Existing Asset | Location | How Used |
-|----------------|----------|----------|
-| `recharts` | `node_modules/recharts` | `PieChart`, `Pie`, `Cell`, `Tooltip` in AllocationChart |
-| `lucide-react` | `node_modules/lucide-react` | `RefreshCw` (sync spinner), `AlertCircle` (error), `Clock` (timestamp) |
-| Tailwind CSS | `tailwind.config.js` | All layout, spacing, colour, and typography |
-| `Intl.NumberFormat` | Browser native | AUD currency formatting — no extra dependency |
-| `src/index.css` | Existing | Tailwind base/components/utilities already imported |
+```
+┌─────────────────── Header (full width) ────────────────────────────┐
+│  Wealth Butler                          [Last synced: ...] [Sync]  │
+└────────────────────────────────────────────────────────────────────┘
+┌──────────────── Row 1: Summary Cards (5 cards) ────────────────────┐
+│ ┌──────────────┐ ┌──────────────┐ ┌────────────┐ ┌────────────────┐│
+│ │  Net Worth   │ │ Total Assets │ │Cash on Hand│ │     Debts      ││
+│ │  $X.XX M     │ │  $X.XX M     │ │  $XXX,XXX  │ │    $XX,XXX     ││
+│ │  ─────────   │ │  1d: -X (X%)│ │            │ │  1d: $0        ││
+│ │  Investable  │ │  1w: +X (X%)│ │            │ │  1w: +X (X%)   ││
+│ │  $X.XX M     │ │             │ │            │ │                ││
+│ └──────────────┘ └──────────────┘ └────────────┘ └────────────────┘│
+│ ┌──────────────────────────────┐                                   │
+│ │       Tax Estimate           │                                   │
+│ │       $XX,XXX                │                                   │
+│ │  Adjusted Net Worth: $X.XX M │                                   │
+│ └──────────────────────────────┘                                   │
+└────────────────────────────────────────────────────────────────────┘
+┌──────────────── Row 2: Goal Progress ──────────────────────────────┐
+│  [GoalProgressCard — accent purple — full width]                   │
+└────────────────────────────────────────────────────────────────────┘
+┌──────────────── Row 3: Charts + AI Summary ────────────────────────┐
+│ ┌─────────────────────────────┐  ┌──────────────────────────────┐ │
+│ │  AllocationChart            │  │  MarketSummaryCard           │ │
+│ │  [Tab: Stock | All | Crypto │  │  [AI-generated market update]│ │
+│ │   | Investable ex-cash]     │  │                              │ │
+│ │  [Pie chart]                │  │                              │ │
+│ └─────────────────────────────┘  └──────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────┘
+```
 
-No new libraries required. Everything needed is already in `package.json`.
+---
+
+## Navigation Approach
+
+State-based page routing — no React Router. `App.jsx` holds:
+
+```js
+const [activePage, setActivePage] = useState('dashboard')
+const [portfolio, setPortfolio] = useState(null)
+const [loading, setLoading] = useState(true)
+const [syncing, setSyncing] = useState(false)
+```
+
+Portfolio state is hoisted to App (not Dashboard) because `AssetsPage` also needs holdings. Dashboard and AssetsPage receive portfolio as props.
+
+```jsx
+{activePage === 'dashboard'    && <Dashboard portfolio={portfolio} loading={loading} syncing={syncing} onNavigate={setActivePage} onSync={handleSync} />}
+{activePage === 'assets'       && <AssetsPage holdings={portfolio?.holdings} loading={loading} />}
+{activePage === 'goals'        && <GoalsPage />}
+{activePage === 'ai-advisor'   && <ComingSoonPage label="AI Advisor" />}
+{activePage === 'integrations' && <ComingSoonPage label="Integrations" />}
+```
 
 ---
 
 ## Components
 
-### Dashboard
-- **Purpose:** Root layout; owns `portfolio` state, `loading`, `error`, and `lastSync` state; coordinates child renders
+### App (updated)
+- **Purpose:** Root shell; owns `activePage` + portfolio state; renders Sidebar + active page
+- **Location:** `src/App.jsx`
+- **State:** `activePage`, `portfolio`, `loading`, `syncing`
+- **Behaviour:** Fetches portfolio on mount; passes portfolio + handlers to Dashboard and AssetsPage
+
+---
+
+### Sidebar (updated)
+- **Purpose:** Navigation spine; highlights active page per DESIGN-SYSTEM.md accent mapping
+- **Location:** `src/components/Sidebar.jsx`
+- **Props:** `{ activePage: String, onNavigate: Function }`
+
+---
+
+### Dashboard (refactored in T11)
+- **Purpose:** Renders all Dashboard sections; derives `debtsTotal` from localStorage; passes `onNavigate` to GoalProgressCard
 - **Location:** `src/components/Dashboard.jsx`
-- **Props:** none (top-level component)
-- **State:**
+- **Props:** `{ portfolio, loading, syncing, onNavigate, onSync }`
+- **Derived values computed in Dashboard:**
   ```js
-  portfolio: { netWorth, lastUpdated, holdings, aiSummary, errors } | null
-  loading: Boolean
-  syncing: Boolean
-  error: String | null
+  const debtsTotal = JSON.parse(localStorage.getItem('wb-liabilities') || '[]')
+    .reduce((sum, l) => sum + l.valueAUD, 0)
+  const netWorth = (portfolio?.assetsTotal ?? 0) - debtsTotal
+  const investable = portfolio?.holdings
+    .filter(h => h.assetType !== 'cash')
+    .reduce((sum, h) => sum + h.valueAUD, 0) ?? 0
   ```
-- **Behaviour:** Calls `fetchPortfolio()` on mount; passes `onSync` handler to Header; distributes data to children
 
 ---
 
-### Header
-- **Purpose:** App title, Sync button, last-updated timestamp, partial-failure warning badges
-- **Location:** `src/components/Header.jsx`
-- **Props:**
-  ```js
-  { lastUpdated: String|null, syncing: Boolean, errors: Array, onSync: Function }
-  ```
-- **Behaviour:** Renders `SyncButton` (disabled + spinner when `syncing`); formats `lastUpdated` with `Intl.DateTimeFormat`; maps `errors` to warning badges per source
-
----
-
-### NetWorthCard
-- **Purpose:** Displays total AUD net worth in a prominent card
+### NetWorthCard (extended in T11)
 - **Location:** `src/components/NetWorthCard.jsx`
-- **Props:**
-  ```js
-  { netWorth: Number|null, loading: Boolean }
-  ```
-- **Behaviour:** Formats with `Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' })`; renders Tailwind skeleton div when `loading` is true
+- **Props:** `{ netWorth: Number|null, investable: Number|null, loading: Boolean }`
+- **Design:** Hero card, accent-mint, 6px hard-offset shadow
 
 ---
 
-### HoldingsTable
-- **Purpose:** Sortable table of all holdings across all sources
-- **Location:** `src/components/HoldingsTable.jsx`
+### TotalAssetsCard (new — T11)
+- **Location:** `src/components/TotalAssetsCard.jsx`
 - **Props:**
   ```js
-  { holdings: Array, loading: Boolean }
+  { assetsTotal: Number|null, delta1d: Number|null, delta1dPct: Number|null,
+    delta1w: Number|null, delta1wPct: Number|null, loading: Boolean }
   ```
-- **Columns:** Ticker/Coin | Exchange | Qty | Price (AUD) | Value (AUD) | Allocation %
-- **Behaviour:** Default sort: `valueAUD` descending; renders skeleton rows when `loading`; empty state row when `holdings` is empty and not loading
+- **Behaviour:** Delta colour: positive → `#00c48c`, negative → `#e63946`, zero → `#888888`
 
 ---
 
-### AllocationChart
-- **Purpose:** Recharts pie chart showing portfolio value by sector
+### CashOnHandCard (new — T11)
+- **Location:** `src/components/CashOnHandCard.jsx`
+- **Props:** `{ cashOnHand: Number|null, loading: Boolean }`
+
+---
+
+### DebtsCard (new — T11)
+- **Location:** `src/components/DebtsCard.jsx`
+- **Props:** `{ debtsTotal: Number, loading: Boolean }`
+- **Behaviour:** Shows main debts total; delta values shown as `$0` / zero until historical data is available (MVP limitation)
+
+---
+
+### TaxEstimateCard (new — T11)
+- **Location:** `src/components/TaxEstimateCard.jsx`
+- **Props:** `{ taxEstimate: Number|null, adjustedNetWorth: Number|null, loading: Boolean }`
+- **Behaviour:** Shows "No cost basis data" with dashed border when `taxEstimate` is null
+
+---
+
+### AllocationChart (updated — T12)
+- **Purpose:** 4-tab configurable chart panel
 - **Location:** `src/components/AllocationChart.jsx`
-- **Props:**
-  ```js
-  { holdings: Array, loading: Boolean }
-  ```
-- **Behaviour:** Groups holdings by `sector` (fallback: "Other"); computes each sector's % of `netWorth`; uses Recharts `PieChart` + `Pie` + `Cell` + `Tooltip`; renders skeleton when `loading`
+- **Props:** `{ holdings: Array, loading: Boolean }`
+- **State:** `chartType` (default `'stock-sectors'`)
 
 ---
 
 ### MarketSummaryCard
-- **Purpose:** Displays Claude-generated market summary; skeleton when unavailable
 - **Location:** `src/components/MarketSummaryCard.jsx`
-- **Props:**
-  ```js
-  { aiSummary: String|null, loading: Boolean, apiKeyMissing: Boolean }
-  ```
-- **Behaviour:** Shows text when `aiSummary` is a non-empty string; shows skeleton when `loading`; shows "AI summary unavailable" message when `apiKeyMissing`
+- **Props:** `{ aiSummary: String|null, loading: Boolean, apiKeyMissing: Boolean }`
+- **Design:** Accent-sand card
+
+---
+
+### GoalProgressCard (new — T13)
+- **Location:** `src/components/GoalProgressCard.jsx`
+- **Props:** `{ netWorth: Number|null, onNavigate: Function }`
+- **Design:** Accent-purple card, full-width in Dashboard Row 2
+
+---
+
+### AssetsPage (new — T14)
+- **Purpose:** Holdings table + platform connections + manual assets + liabilities
+- **Location:** `src/components/AssetsPage.jsx`
+- **Props:** `{ holdings: Array, loading: Boolean }`
+- **Sections:** Holdings table | Platform connections | Manual assets | Liabilities
+
+---
+
+### GoalsPage (new — T15)
+- **Location:** `src/components/GoalsPage.jsx`
+- **Props:** none
+- **Design:** Accent-purple throughout; `Sparkles` icon on AI-guided heading
 
 ---
 
 ### API Client
-- **Purpose:** HTTP wrapper for backend calls; single import for all API interactions
 - **Location:** `src/api/portfolio.js`
-- **Exports:**
-  ```js
-  fetchPortfolio()  // GET /api/portfolio → portfolio object
-  syncPortfolio()   // POST /api/sync → portfolio object
-  ```
-- **Behaviour:** Uses `import.meta.env.VITE_API_URL` (default `http://localhost:3001`); throws on non-2xx responses so Dashboard can catch and set error state
+- **Exports:** `fetchPortfolio()` · `syncPortfolio()`
 
 ---
 
@@ -136,44 +234,56 @@ No new libraries required. Everything needed is already in `package.json`.
 
 ### Portfolio Response (from backend)
 ```js
-// GET /api/portfolio or POST /api/sync response
 {
-  netWorth: Number,           // AUD total, e.g. 123456.78
-  lastUpdated: String | null, // ISO-8601, e.g. "2026-06-01T10:00:00.000Z"
+  assetsTotal: Number,      // sum of all holding values — NEW
+  netWorth: Number,         // assetsTotal (backend doesn't know about local debts; computed in Dashboard)
+  cashOnHand: Number,       // sum of holdings where assetType === 'cash' — NEW
+  taxEstimate: Number|null, // CGT estimate; null if no cost basis data — NEW
+  delta: {                  // NEW
+    assets1d:    Number,    // AUD change from previous close
+    assets1dPct: Number,    // % change from previous close
+    assets1w:    Number,    // AUD change from 7 days ago
+    assets1wPct: Number,    // % change from 7 days ago
+  },
+  lastUpdated: String|null,
   holdings: [
     {
-      ticker: String,         // e.g. "AAPL" or "BTC"
+      ticker: String,
       exchange: String,       // "IBKR-BIZ" | "IBKR-PERSONAL" | "COINSPOT"
-      qty: Number,            // e.g. 10.5
+      qty: Number,
       price: Number,          // AUD per unit
-      valueAUD: Number,       // qty × price
+      valueAUD: Number,
       sector: String,         // e.g. "Technology", "Crypto", "Other"
-      allocation: Number,     // 0–100, percentage of netWorth
+      assetType: String,      // "stock" | "crypto" | "cash" | "other" — NEW
+      allocation: Number,     // 0–100
     }
   ],
-  aiSummary: String | null,   // 2–3 sentence summary, null if unavailable
-  errors: [
-    {
-      source: String,         // "IBKR" | "COINSPOT" | "AI"
-      message: String,        // human-readable error description
-    }
-  ]
+  aiSummary: String|null,
+  errors: [{ source: String, message: String }]
 }
 ```
 
-### Empty / First-Load State
+> **Backend note:** `assetsTotal`, `cashOnHand`, `taxEstimate`, `delta`, and `assetType` per holding are new fields required by the redesigned Dashboard. These must be implemented in the Hono backend before T11 can be fully functional. Until then, T11 can be built with derived/mock values.
+
+### Goal Config (`localStorage` `wb-goal-config`)
 ```js
-// Dashboard initial state before any fetch completes
-portfolio = null
-loading = true
-error = null
+{
+  targetAUD: Number,
+  targetYear: Number,
+  annualSavings: Number,
+  monthlySavingsRequired: Number,
+  notes: String,  // AI narrative or "Manually calculated"
+}
 ```
 
-### Error State
+### Manual Asset (`localStorage` `wb-manual-assets` — array)
 ```js
-// Sync failed completely
-portfolio = <last known value>  // preserved
-error = "Failed to sync: <message>"
+{ id: String, name: String, type: 'Cash'|'Property'|'Super'|'Other', valueAUD: Number }
+```
+
+### Liability (`localStorage` `wb-liabilities` — array)
+```js
+{ id: String, name: String, type: 'Mortgage'|'Loan'|'Credit Card'|'Other', valueAUD: Number }
 ```
 
 ---
@@ -182,11 +292,15 @@ error = "Failed to sync: <message>"
 
 | Scenario | Handling |
 |----------|----------|
-| `fetchPortfolio` network error | `loading = false`, `error = message`, stale `portfolio` preserved |
+| `fetchPortfolio` network error | `loading = false`, `error = message`, stale portfolio preserved |
 | `syncPortfolio` network error | `syncing = false`, error banner shown, `lastUpdated` NOT changed |
-| `portfolio.errors[]` non-empty | Warning badges shown in Header per source; data still displayed |
-| `aiSummary === null` + key missing | `apiKeyMissing` prop passed to MarketSummaryCard |
-| `holdings` is empty | HoldingsTable shows empty-state row; AllocationChart shows empty state |
+| `portfolio.errors[]` non-empty | Warning badges in Header per source; data still displayed |
+| `taxEstimate === null` | TaxEstimateCard shows "No cost basis data" dashed-border state |
+| `delta` fields absent (backend not yet updated) | Cards show delta as "–" rather than crashing |
+| `holdings` is empty | AllocationChart shows "No data"; AssetsPage holdings table shows empty state |
+| Claude API fails (GoalsPage) | Inline error; answers preserved; retry button |
+| Claude API key absent (GoalsPage) | Client-side calculation fallback |
+| localStorage read fails | Treat as empty array; app does not crash |
 
 ---
 
@@ -194,10 +308,10 @@ error = "Failed to sync: <message>"
 
 | Decision | Choice | Reason |
 |----------|--------|--------|
-| State location | `useState` in Dashboard | MVP simplicity; no cross-component sharing needed |
-| Chart library | Recharts `PieChart` | Already in `package.json`; no additional dep |
-| Number formatting | `Intl.NumberFormat('en-AU')` | Native browser API; zero bundle cost |
-| Date formatting | `Intl.DateTimeFormat('en-AU')` | Native; consistent with number formatting approach |
-| API base URL | `VITE_API_URL` env var | Vite env pattern; allows override without code change |
-| Skeleton loading | Tailwind `animate-pulse` div | No extra library; consistent with Tailwind-first approach |
-| Component style | Pure function components | Consistent with React 18 + existing `App.jsx` pattern |
+| Portfolio state hoisted to App | `useState` in App.jsx | AssetsPage needs holdings without re-fetching |
+| Page routing | `useState` in App.jsx | MVP simplicity; no URL requirements |
+| Debts/goal persistence | `localStorage` | Client-only data; zero backend setup |
+| DebtsCard reads localStorage on render | Synchronous read | Avoids prop-drilling liabilities up through App; localStorage reads are instant |
+| Chart panel state | `useState` in AllocationChart | Local UI state only |
+| Delta colours | Inline style / conditional Tailwind class | Values known at render time; no theme extension needed |
+| `assetType` field | Explicit field on holding | Cleaner than inferring from sector/exchange string |

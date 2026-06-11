@@ -3,18 +3,15 @@
 ## Milestones
 
 ```
-[Iteration 0]  Scaffolding + specs         ← current
-[Iteration 1]  MVP: Dashboard + IBKR + Coinspot
-[Iteration 2]  Complete net worth (manual/CSV assets)
-[Iteration 3]  Goal setup (adviser chat)
-[Iteration 4]  Briefing + allocation advisory
-[Iteration 5]  DCA semi-auto module
-[Iteration 6+] Product hardening (optional)
+[Iteration 0]  Scaffolding + specs         ✅ Done
+[Iteration 1]  MVP: Dashboard + Assets + Goals + IBKR + Coinspot  ← current
+[Iteration 2]  AI Analyst + DCA + Fast Forward
+[Iteration 3]  Public Release (auth, hardening, multi-broker)
 ```
 
 ---
 
-## Iteration 0 — Scaffolding (current)
+## Iteration 0 — Scaffolding ✅ Done
 
 **Goal:** Clean repo, blank running service, specs approved.
 
@@ -24,83 +21,61 @@
 | Git repository initialised | ✅ Done |
 | PROJECT.md + ROADMAP.md + STATE.md | ✅ Done |
 | README | ✅ Done |
-| MVP specs written and approved | ⏳ Pending |
+| MVP specs written and approved | ✅ Done |
 
 ---
 
-## Iteration 1 — MVP: Dashboard & Visualisation
+## Iteration 1 — MVP: Dashboard, Assets & Goals (current)
 
-**Goal:** Replace the spreadsheet for IBKR + Coinspot. Daily use.
+**Goal:** Replace the spreadsheet for IBKR + Coinspot. Daily use. FIRE goal visible.
 
 | Feature | Status |
 |---------|--------|
 | IBKR integration (business + personal) | TBD |
 | Coinspot integration (API or CSV) | TBD |
-| Net worth total (AUD) | TBD |
-| Holdings table | TBD |
-| Sector / allocation pie chart | TBD |
-| Sync button + last updated timestamp | TBD |
-| AI market update summary | TBD |
+| Net worth total (AUD) | ✅ Done (T3) |
+| Holdings table | ✅ Done (T4) |
+| Configurable chart panel (4 chart types) | ⏳ T11 |
+| Sync button + last updated timestamp | ✅ Done (T7) |
+| AI market update summary | ✅ Done (T6) |
+| Sidebar navigation | ⏳ T10 |
+| Goal progress summary card (Dashboard) | ⏳ T12 |
+| Assets page (manual entry + platform connections) | ⏳ T13 |
+| Goals page (AI-guided FIRE setup + editable) | ⏳ T14 |
 
-*Exit: stop updating the spreadsheet for IBKR + Coinspot.*
+*Exit: stop updating the spreadsheet for IBKR + Coinspot; FIRE goal progress visible daily.*
 
 ---
 
-## Iteration 2 — Complete Net Worth
+## Iteration 2 — AI Analyst + DCA + Fast Forward
 
-**Goal:** One honest net-worth number including all asset classes.
+**Goal:** Per-holding analysis drives DCA and allocation guidance; Fast Forward projections.
 
 | Feature | Status |
 |---------|--------|
-| Manual asset entry (cash, super, property) | TBD |
+| Per-holding Snowflake-style grade (6 dimensions) | TBD |
+| ASX, US, and global market coverage | TBD |
+| AI analyst briefing (butler-style, tied to positions) | TBD |
+| DCA guidance: per-holding and portfolio-level | TBD |
+| Fast Forward projections (1, 5, 10, 20+ year) | TBD |
+| Assumption editor (growth rates, AI defaults + manual overrides) | TBD |
+| Manual assets reflected in Dashboard net worth | TBD |
 | CSV import for banks/super | TBD |
 
-*Exit: single accurate net-worth figure.*
+*Exit: weekly review workflow fully inside the app; cash deployment guided.*
 
 ---
 
-## Iteration 3 — Goal Setup (Adviser Chat)
+## Iteration 3 — Public Release
 
-**Goal:** FIRE plan set in conversation; progress visible on dashboard.
+**Goal:** Multi-user ready; login; additional integrations; hardened for public use.
 
 | Feature | Status |
 |---------|--------|
-| Claude-backed onboarding chat | TBD |
-| Goal card on dashboard | TBD |
-| Local persistence (SQLite or JSON) | TBD |
+| Login via Google only (no username/password) | TBD |
+| Additional platform integrations (TBC) | TBD |
+| FIRE milestone visualisation enhancements | TBD |
+| Performance and polish pass | TBD |
+| TBC based on Iteration 1–2 learnings | TBD |
 
-*Exit: FIRE plan visible next to holdings.*
-
----
-
-## Iteration 4 — Briefing & Allocation Advisory
-
-**Goal:** Weekly review workflow fully inside the app.
-
-| Feature | Status |
-|---------|--------|
-| On-demand portfolio briefing | TBD |
-| Portfolio vs goal gap analysis | TBD |
-| Rule templates (200 DMA, concentration, profit-take) | TBD |
-
-*Exit: weekly review workflow in the app.*
-
----
-
-## Iteration 5 — DCA Module
-
-**Goal:** Less manual research when deploying cash.
-
-| Feature | Status |
-|---------|--------|
-| DCA amount + period input | TBD |
-| Allocation suggestions | TBD |
-| IBKR order prep (semi-auto) | TBD |
-
-*Exit: cash deployment workflow inside the app.*
-
----
-
-## Iteration 6+ — Product Hardening (Optional)
-
-Auth, Postgres, connector framework, cloud hosting, multi-broker support (Binance, Stake), billing. Spec when MVP is trusted in daily use.
+*Exit: public launch.*
