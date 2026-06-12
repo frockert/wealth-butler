@@ -244,10 +244,9 @@ export default function GoalsPage({ netWorth: netWorthProp }) {
             <div className="flex items-center gap-2 mb-6">
               <Sparkles size={20} className="text-[#3d2880]" />
               <h2 className="font-sans text-[18px] font-semibold text-[#111111]">
-                Set up your FIRE goal
+                Set up your FIRE (Financial Independence, Retire Early) goal
               </h2>
             </div>
-
             <p className="label-mono text-[12px] text-[#888888] mb-6">
               Step {setupStep} of {SETUP_STEPS.length}
             </p>
@@ -287,6 +286,7 @@ export default function GoalsPage({ netWorth: netWorthProp }) {
                     >
                       Retry
                     </button>
+            
                   </div>
                 )}
 

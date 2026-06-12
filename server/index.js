@@ -3,11 +3,13 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { initCredentialsFromEnv } from './lib/credentials.js';
+import { seedDevDataIfEmpty } from './lib/seed-dev.js';
 import importRouter from './routes/import.js';
 import connectRouter from './routes/connect.js';
 import portfolioRouter from './routes/portfolio.js';
 
 initCredentialsFromEnv();
+seedDevDataIfEmpty();
 
 const app = new Hono();
 

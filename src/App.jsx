@@ -69,6 +69,9 @@ export default function App() {
             holdings={portfolio?.holdings}
             loading={loading}
             connections={portfolio?.connections}
+            assetsTotal={portfolio?.assetsTotal ?? 0}
+            delta={portfolio?.delta?.assets1d ?? null}
+            deltaPct={portfolio?.delta?.assets1dPct ?? null}
             onSync={handleSync}
           />
         );

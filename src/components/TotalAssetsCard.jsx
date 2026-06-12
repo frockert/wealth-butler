@@ -1,17 +1,30 @@
 import Card from './ui/Card';
 import Skeleton from './ui/Skeleton';
-import TrendDelta from './ui/DeltaLine';
 
 const fmt = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' });
 
-export default function TotalAssetsCard({
-  assetsTotal,
-  delta1d,
-  delta1dPct,
-  delta1w,
-  delta1wPct,
-  loading,
-}) {
+const SECTION_LABELS = {
+  stock: 'Stocks',
+  crypto: 'Crypto',
+  cash: 'Cash',
+  other: 'Other',
+};
+
+function groupBySection(holdings) {
+  const map = {};
+  for (const h of holdings) {
+    const type = h.assetType || 'other';
+    map[type] = (map[type] ?? 0) + (h.valueAUD ?? 0);
+  }
+  return Object.entries(map)
+    .filter(([, value]) => value > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([type, value]) => ({ label: SECTION_LABELS[type] ?? type, value }));
+}
+
+export default function TotalAssetsCard({ assetsTotal, holdings = [], loading }) {
+  const sections = groupBySection(holdings);
+
   return (
     <Card>
       <p className="label-mono font-normal tracking-[0.06em] text-[#888888] mb-3">Total assets</p>
@@ -27,8 +40,15 @@ export default function TotalAssetsCard({
             {fmt.format(assetsTotal ?? 0)}
           </p>
           <div className="flex flex-col gap-1">
-            <TrendDelta label="1d" delta={delta1d} deltaPct={delta1dPct} />
-            <TrendDelta label="1w" delta={delta1w} deltaPct={delta1wPct} />
+            {sections.length === 0 ? (
+              <p className="text-[12px] font-medium text-[#888888]">No holdings</p>
+            ) : (
+              sections.map(({ label, value }) => (
+                <p key={label} className="text-[12px] font-medium text-[#888888]">
+                  {label}: {fmt.format(value)}
+                </p>
+              ))
+            )}
           </div>
         </>
       )}

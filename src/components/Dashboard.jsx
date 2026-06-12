@@ -89,15 +89,16 @@ export default function Dashboard({
         ) : (
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-              <NetWorthCard netWorth={netWorth} investable={investable} loading={loading} />
-              <TotalAssetsCard
-                assetsTotal={assetsTotal}
+              <NetWorthCard
+                netWorth={netWorth}
+                investable={investable}
                 delta1d={delta1d}
                 delta1dPct={delta1dPct}
                 delta1w={delta1w}
                 delta1wPct={delta1wPct}
                 loading={loading}
               />
+              <TotalAssetsCard assetsTotal={assetsTotal} holdings={holdings} loading={loading} />
               <CashOnHandCard cashOnHand={cashOnHand} loading={loading} />
               <DebtsCard debtsTotal={debtsTotal} loading={loading} />
               <TaxEstimateCard

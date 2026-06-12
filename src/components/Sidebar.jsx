@@ -1,4 +1,5 @@
 import { LayoutDashboard, Wallet, Target, Sparkles, Plug } from 'lucide-react';
+import logoDark from '../assets/brand/wealthbutler-logo-dark.png';
 
 const NAV = [
   { page: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, accent: '#c8f0d8', border: '#1a6640' },
@@ -42,7 +43,11 @@ export default function Sidebar({ activePage, onNavigate }) {
   return (
     <aside className="w-60 min-h-screen bg-[#111111] flex flex-col shrink-0">
       <div className="px-4 pt-4 pb-5 border-b border-[#333333]">
-        <span className="text-[#f0ede6] text-[15px] font-semibold tracking-[-0.02em]">Wealth Butler</span>
+        <img
+          src={logoDark}
+          alt="WealthButler — Portfolio Intelligence"
+          className="h-8 w-auto max-w-full"
+        />
       </div>
 
       <nav className="flex-1 py-2">

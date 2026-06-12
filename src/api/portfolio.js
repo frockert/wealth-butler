@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL ?? '';
 
 async function handleResponse(response, context) {
   if (!response.ok) {
@@ -8,27 +8,30 @@ async function handleResponse(response, context) {
   return response.json();
 }
 
-async function postConnect(path, body) {
-  let response;
+async function apiFetch(path, options) {
   try {
-    response = await fetch(`${API_URL}${path}`, {
-      method: 'POST',
-      headers: body ? { 'Content-Type': 'application/json' } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    return await fetch(`${API_URL}${path}`, options);
   } catch {
-    throw new Error('Could not reach the server — is the backend running?');
+    throw new Error('Could not reach the server — run `npm run dev:all` or `npm run server` in another terminal.');
   }
+}
+
+async function postConnect(path, body) {
+  const response = await apiFetch(path, {
+    method: 'POST',
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
   return handleResponse(response, path);
 }
 
 export async function fetchPortfolio() {
-  const response = await fetch(`${API_URL}/api/portfolio`);
+  const response = await apiFetch('/api/portfolio');
   return handleResponse(response, 'GET /api/portfolio');
 }
 
 export async function syncPortfolio() {
-  const response = await fetch(`${API_URL}/api/sync`, { method: 'POST' });
+  const response = await apiFetch('/api/sync', { method: 'POST' });
   return handleResponse(response, 'POST /api/sync');
 }
 
@@ -37,15 +40,10 @@ export async function uploadCsv(platform, file) {
   formData.append('platform', platform);
   formData.append('file', file);
 
-  let response;
-  try {
-    response = await fetch(`${API_URL}/api/import/csv`, {
-      method: 'POST',
-      body: formData,
-    });
-  } catch {
-    throw new Error('Could not reach the server — is the backend running?');
-  }
+  const response = await apiFetch('/api/import/csv', {
+    method: 'POST',
+    body: formData,
+  });
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
